@@ -1,0 +1,335 @@
+# Microsoft Logs AI Analyzer Configuration
+# Copy this file to config.yaml and customize for your environment
+
+# General Settings
+general:
+  environment: production  # production, staging, development
+  log_level: INFO  # DEBUG, INFO, WARNING, ERROR, CRITICAL
+  data_directory: ./data
+  timezone: UTC
+
+# LLM Provider Configuration
+# Choose one: claude, openai, gemini
+llm:
+  provider: claude  # claude, openai, gemini
+
+  # Provider-specific settings
+  claude:
+    model: claude-3-5-sonnet-20241022  # or claude-3-opus-20240229, claude-3-haiku-20240307
+    max_tokens: 4096
+    temperature: 0.3
+    api_endpoint: https://api.anthropic.com/v1/messages
+
+  openai:
+    model: gpt-4-turbo-preview  # or gpt-4, gpt-3.5-turbo
+    max_tokens: 4096
+    temperature: 0.3
+    api_endpoint: https://api.openai.com/v1/chat/completions
+
+  gemini:
+    model: gemini-pro  # or gemini-ultra
+    max_tokens: 4096
+    temperature: 0.3
+    api_endpoint: https://generativelanguage.googleapis.com/v1/models
+
+  # Rate limiting to avoid API throttling
+  rate_limit:
+    requests_per_minute: 50
+    requests_per_day: 5000
+
+  # Analysis batching for cost optimization
+  batching:
+    enabled: true
+    max_batch_size: 100
+    batch_interval_seconds: 60
+
+# Log Collection Settings
+log_collection:
+  # Collection interval in seconds
+  interval_seconds: 300  # 5 minutes
+
+  # Maximum logs to collect per interval
+  max_logs_per_collection: 1000
+
+  # Log retention in days
+  retention_days: 30
+
+  # Servers to monitor (can use * for wildcards)
+  servers:
+    - name: DC01
+      type: domain_controller
+      hostname: dc01.contoso.com
+      enabled: true
+
+    - name: DC02
+      type: domain_controller
+      hostname: dc02.contoso.com
+      enabled: true
+
+    - name: EXCH01
+      type: exchange
+      hostname: exch01.contoso.com
+      enabled: true
+
+    - name: WEB01
+      type: iis
+      hostname: web01.contoso.com
+      enabled: true
+
+    - name: SQL01
+      type: sql_server
+      hostname: sql01.contoso.com
+      enabled: true
+
+  # Log sources to collect
+  sources:
+    windows_event_logs:
+      enabled: true
+      logs:
+        - System
+        - Application
+        - Security
+      # Only collect events with these levels
+      event_levels:
+        - Error
+        - Warning
+        - Critical
+      # Filter by event IDs (empty = all)
+      event_ids: []
+
+    active_directory:
+      enabled: true
+      logs:
+        - Directory Service
+        - DFS Replication
+        - DNS Server
+      critical_events:
+        - 1644  # AD database corruption
+        - 2042  # Replication failure
+        - 4740  # Account lockout
+
+    exchange:
+      enabled: true
+      logs:
+        - MSExchange Management
+        - MSExchange ADAccess
+        - MSExchangeTransport
+      monitor_mailflow: true
+      monitor_database: true
+
+    iis:
+      enabled: true
+      log_path: C:\inetpub\logs\LogFiles
+      monitor_errors: true
+      monitor_performance: true
+
+    azure_data_factory:
+      enabled: false
+      subscription_id: your-subscription-id
+      resource_group: your-resource-group
+      factory_name: your-adf-name
+
+    custom_logs:
+      enabled: true
+      paths:
+        - path: C:\CustomLogs\*.log
+          format: text
+        - path: C:\Apps\*.json
+          format: json
+
+# Analysis Settings
+analysis:
+  # Real-time analysis
+  realtime:
+    enabled: true
+    # Analyze logs immediately when critical events detected
+    critical_threshold: 1
+
+  # Batch analysis
+  batch:
+    enabled: true
+    interval_minutes: 15
+
+  # Pattern learning
+  pattern_learning:
+    enabled: true
+    # Minimum occurrences before establishing a pattern
+    min_occurrences: 3
+    # Learning window in days
+    learning_window_days: 7
+    # Auto-update patterns
+    auto_update: true
+
+  # Anomaly detection
+  anomaly_detection:
+    enabled: true
+    sensitivity: medium  # low, medium, high
+    baseline_days: 14
+
+  # Issue classification
+  severity_levels:
+    critical:
+      keywords:
+        - "database corruption"
+        - "service crashed"
+        - "domain controller"
+        - "authentication failed"
+        - "replication failed"
+      auto_alert: true
+
+    high:
+      keywords:
+        - "high CPU"
+        - "memory exhausted"
+        - "disk full"
+        - "backup failed"
+      auto_alert: true
+
+    medium:
+      keywords:
+        - "warning"
+        - "timeout"
+        - "slow response"
+      auto_alert: false
+
+    low:
+      keywords:
+        - "information"
+        - "notice"
+      auto_alert: false
+
+# Alert Configuration
+alerts:
+  enabled: true
+
+  # Email notifications
+  email:
+    enabled: true
+    smtp_server: smtp.company.com
+    smtp_port: 587
+    use_tls: true
+    from_address: msloganalyzer@company.com
+    to_addresses:
+      - it-team@company.com
+      - oncall@company.com
+    # Send summary emails
+    daily_summary: true
+    summary_time: "08:00"
+
+  # Webhook notifications
+  webhook:
+    enabled: false
+    url: https://your-webhook-url.com/alerts
+    method: POST
+    headers:
+      Content-Type: application/json
+
+  # Microsoft Teams integration
+  teams:
+    enabled: false
+    webhook_url: https://outlook.office.com/webhook/...
+
+  # Slack integration
+  slack:
+    enabled: false
+    webhook_url: https://hooks.slack.com/services/...
+
+  # Alert rules
+  rules:
+    # Don't alert during maintenance windows
+    suppress_during_maintenance: true
+    # Deduplicate similar alerts within time window
+    deduplication_window_minutes: 30
+    # Escalation after repeated issues
+    escalation:
+      enabled: true
+      threshold: 3
+      window_minutes: 60
+
+# Security Settings
+security:
+  # Credential storage method
+  credential_storage: dpapi  # dpapi (Windows), encrypted_file, environment
+
+  # Encryption
+  encryption:
+    enabled: true
+    algorithm: AES-256-GCM
+
+  # Data masking for sensitive information
+  data_masking:
+    enabled: true
+    mask_patterns:
+      - pattern: '\b[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\.[A-Z|a-z]{2,}\b'
+        type: email
+      - pattern: '\b\d{3}-\d{2}-\d{4}\b'
+        type: ssn
+      - pattern: 'password["\s:=]+[^\s"]*'
+        type: password
+      - pattern: 'token["\s:=]+[^\s"]*'
+        type: token
+
+  # Access control
+  access_control:
+    enabled: true
+    require_authentication: true
+
+  # Audit logging
+  audit_log:
+    enabled: true
+    log_all_access: true
+    retention_days: 90
+
+  # Network security
+  network:
+    use_tls: true
+    verify_certificates: true
+    allowed_ips: []  # Empty = allow all
+
+# Dashboard Settings
+dashboard:
+  enabled: true
+  host: 0.0.0.0
+  port: 8080
+  # Authentication
+  authentication:
+    enabled: true
+    username: admin
+    # Password stored in secure credential store
+  # Auto-refresh interval in seconds
+  refresh_interval: 30
+
+# Performance Settings
+performance:
+  # Worker threads for parallel processing
+  worker_threads: 4
+
+  # Cache settings
+  cache:
+    enabled: true
+    max_size_mb: 500
+    ttl_minutes: 60
+
+  # Database connection pool
+  db_pool:
+    min_connections: 2
+    max_connections: 10
+
+# Monitoring & Health Check
+monitoring:
+  # Self-monitoring
+  health_check:
+    enabled: true
+    interval_seconds: 60
+
+  # Performance metrics
+  metrics:
+    enabled: true
+    collect_system_metrics: true
+    collect_analysis_metrics: true
+
+  # Alerting on analyzer health
+  self_alert:
+    enabled: true
+    alert_on_failure: true
+    alert_on_performance_degradation: true
