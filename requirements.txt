@@ -1,0 +1,62 @@
+# Core dependencies
+pyyaml>=6.0.1
+python-dateutil>=2.8.2
+pytz>=2023.3
+
+# LLM API clients
+anthropic>=0.21.0  # Claude API
+openai>=1.12.0  # ChatGPT API
+google-generativeai>=0.4.0  # Gemini API
+
+# Windows integration
+pywin32>=305; sys_platform == 'win32'  # Windows API access
+wmi>=1.5.1; sys_platform == 'win32'  # Windows Management Instrumentation
+
+# Azure integration
+azure-identity>=1.15.0
+azure-mgmt-datafactory>=3.1.0
+azure-monitor-query>=1.2.0
+
+# Web framework for dashboard
+flask>=3.0.0
+flask-cors>=4.0.0
+
+# Data processing
+pandas>=2.1.0
+numpy>=1.24.0
+
+# Security
+cryptography>=42.0.0
+python-dotenv>=1.0.0
+
+# Networking
+requests>=2.31.0
+urllib3>=2.0.0
+
+# Database (SQLite for simplicity)
+sqlite3; python_version >= '3.0'  # Built-in
+
+# Logging and monitoring
+colorlog>=6.8.0
+tqdm>=4.66.0
+
+# Testing
+pytest>=7.4.0
+pytest-cov>=4.1.0
+pytest-mock>=3.12.0
+
+# Email
+secure-smtplib>=0.1.1
+
+# Job scheduling
+schedule>=1.2.0
+
+# Pattern matching and analysis
+regex>=2023.12.0
+jellyfish>=1.0.0  # String similarity
+
+# Rate limiting
+ratelimit>=2.2.1
+
+# Configuration validation
+jsonschema>=4.20.0
